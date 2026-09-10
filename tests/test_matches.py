@@ -68,3 +68,68 @@ def test_delete_then_get(client):
     assert response.status_code == 204
     get = client.get(f"/matches/{match_id}")
     assert get.status_code == 404
+
+
+def test_upload_url_returns_url_and_key(client):
+    """POST /upload-url on a pending_upload match → 200 with both fields"""
+    match_id = client.post("/matches", json=make_payload()).json()["id"]
+
+    response = client.post(f"/matches/{match_id}/upload-url")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["video_key"] == f"matches/{match_id}/raw.mp4"
+    assert data["video_key"] in data["upload_url"]
+
+
+def test_upload_url_unknown_match_returns_404(client):
+    response = client.post("/matches/does-not-exist/upload-url")
+    assert response.status_code == 404
+
+
+def test_upload_url_twice_returns_409(client):
+    """Once completed, a match must not get a second upload URL"""
+    match_id = client.post("/matches", json=make_payload()).json()["id"]
+    client.post(f"/matches/{match_id}/complete")
+
+    response = client.post(f"/matches/{match_id}/upload-url")
+    assert response.status_code == 409
+
+
+def test_complete_sets_status_and_key(client):
+    """POST /complete → uploaded, video_key stored"""
+    match_id = client.post("/matches", json=make_payload()).json()["id"]
+
+    response = client.post(f"/matches/{match_id}/complete")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "uploaded"
+    assert data["video_key"] == f"matches/{match_id}/raw.mp4"
+
+    # the change must be persisted, not just returned
+    persisted = client.get(f"/matches/{match_id}").json()
+    assert persisted["status"] == "uploaded"
+
+
+def test_complete_twice_returns_409(client):
+    match_id = client.post("/matches", json=make_payload()).json()["id"]
+    client.post(f"/matches/{match_id}/complete")
+
+    response = client.post(f"/matches/{match_id}/complete")
+    assert response.status_code == 409
+
+
+def test_preview_url_after_complete(client):
+    match_id = client.post("/matches", json=make_payload()).json()["id"]
+    client.post(f"/matches/{match_id}/complete")
+
+    response = client.get(f"/matches/{match_id}/preview-url")
+    assert response.status_code == 200
+    assert f"matches/{match_id}/raw.mp4" in response.json()["preview_url"]
+
+
+def test_preview_url_without_video_returns_409(client):
+    """A match that never completed its upload has no video to preview"""
+    match_id = client.post("/matches", json=make_payload()).json()["id"]
+
+    response = client.get(f"/matches/{match_id}/preview-url")
+    assert response.status_code == 409

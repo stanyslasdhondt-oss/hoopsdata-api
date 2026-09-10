@@ -47,3 +47,13 @@ class MatchOut(MatchCreate):
 class MatchUpdate(BaseModel):
     status: MatchStatus | None = None
     video_key: str | None = None
+
+
+# for put url and get url in storage
+class UploadurlOut(BaseModel):
+    upload_url: str
+    video_key: str
+
+
+class PreviewUrlOut(BaseModel):
+    preview_url: str
