@@ -5,7 +5,7 @@ FastAPI backend for HoopsData: manages basketball matches and their video upload
 ## Install
 
 ```bash
-git clone <url>
+git clone https://github.com/stanyslasdhondt-oss/hoopsdata-api.git
 cd hoopsdata-api
 python -m venv .venv
 .venv\Scripts\activate        # Windows
