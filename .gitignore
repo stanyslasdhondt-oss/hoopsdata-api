@@ -4,3 +4,4 @@ __pycache__/
 venv/
 *.venv
 *.db
+cours_fastapi_hoopsdata.md
