@@ -5,3 +5,4 @@ venv/
 *.venv
 *.db
 cours_fastapi_hoopsdata.md
+cours_r2_hoopsdata.md
